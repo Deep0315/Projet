@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détails de {{ movie['title'] }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container my-4">
+        <h1 class="text-center">{{ movie['title'] }}</h1>
+        <div class="row">
+            <div class="col-md-4">
+                <img src="https://image.tmdb.org/t/p/w300{{ movie['poster_path'] }}" class="img-fluid" alt="Affiche du film {{ movie['title'] }}">
+            </div>
+            <div class="col-md-8">
+                <h4>Synopsis :</h4>
+                <p>{{ movie['overview'] }}</p>
+                <p><strong>Date de sortie :</strong> {{ movie['release_date'] }}</p>
+                <p><strong>Note :</strong> {{ movie['vote_average'] }} / 10</p>
+                <p><strong>Genres :</strong>
+                    {% for genre in movie['genres'] %}
+                        {{ genre['name'] }}{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                </p>
+
+                <h4>Bandes-Annonces :</h4>
+
+                <!-- Vérification de la disponibilité des vidéos -->
+                {% if videos %}
+                    <!-- Carrousel pour les bandes-annonces -->
+                    <div id="trailerCarousel" class="carousel slide" data-ride="carousel">
+                        <div class="carousel-inner">
+                            {% for video in videos %}
+                            <div class="carousel-item {% if loop.first %}active{% endif %}">
+                                <h5>{{ video['name'] }}</h5>
+                                <iframe width="100%" height="315" src="https://www.youtube.com/embed/{{ video['key'] }}" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <!-- Contrôles du carrousel -->
+                        <a class="carousel-control-prev" href="#trailerCarousel" role="button" data-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="sr-only">Précédent</span>
+                        </a>
+                        <a class="carousel-control-next" href="#trailerCarousel" role="button" data-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="sr-only">Suivant</span>
+                        </a>
+                    </div>
+                {% else %}
+                    <p>Aucune bande-annonce n'est disponible pour ce film.</p>
+                {% endif %}
+
+                <a href="/" class="btn btn-secondary mt-3">Retour à l'accueil</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accueil</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container my-4">
+        <h1 class="text-center">Recherche de Films</h1>
+        <form method="POST" action="/search" class="form-inline justify-content-center">
+            <input type="text" name="query" class="form-control mr-2" placeholder="Entrez le titre d'un film" required>
+            <button type="submit" class="btn btn-primary">Rechercher</button>
+        </form>
+
+        <h2 class="my-4">Films en Tendance</h2>
+        <div class="row">
+            {% for movie in trending_movies %}
+            <div class="col-md-3">
+                <div class="card mb-4 shadow-sm">
+                    <a href="/movie/{{ movie['id'] }}">
+                        <img src="https://image.tmdb.org/t/p/w300{{ movie['poster_path'] }}" class="card-img-top" alt="Affiche du film {{ movie['title'] }}">
+                    </a>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ movie['title'] }}</h5>
+                        <p class="card-text">Note : {{ movie['vote_average'] }}</p>
+                        <a href="/movie/{{ movie['id'] }}" class="btn btn-primary">Voir les détails</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

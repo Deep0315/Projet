@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Résultats de la recherche</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container my-4">
+        <h1 class="text-center">Résultats de la recherche</h1>
+        <div class="row">
+            {% for movie in movies %}
+            <div class="col-md-3">
+                <div class="card mb-4 shadow-sm">
+                    <a href="/movie/{{ movie['id'] }}">
+                        <img src="https://image.tmdb.org/t/p/w300{{ movie['poster_path'] }}" class="card-img-top" alt="Affiche du film {{ movie['title'] }}">
+                    </a>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ movie['title'] }}</h5>
+                        <p class="card-text">Note : {{ movie['vote_average'] }}</p>
+                        <a href="/movie/{{ movie['id'] }}" class="btn btn-primary">Voir les détails</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <a href="/" class="btn btn-secondary">Retour à l'accueil</a>
+    </div>
+</body>
+</html>
