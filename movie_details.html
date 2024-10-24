@@ -9,6 +9,20 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="/">NomDuSite</a> <!-- Nom du site -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link {% if active_page == 'home' %}font-weight-bold{% endif %}" href="/">Accueil</a> <!-- Lien vers l'accueil -->
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if active_page == 'search' %}font-weight-bold{% endif %}" href="/search">Recherche</a> <!-- Lien vers la recherche -->
+                </li>
+            </ul>
+        </div>
+    </nav>
+
     <div class="container my-4">
         <h1 class="text-center">{{ movie['title'] }}</h1>
         <div class="row">
