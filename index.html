@@ -7,6 +7,29 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        .trending-movies-container {
+            overflow: hidden; /* Cache les débordements */
+            white-space: nowrap; /* Aligne les films sur une seule ligne */
+            position: relative; /* Nécessaire pour le positionnement du défilement */
+        }
+
+        .trending-movies {
+            display: inline-block; /* Affiche les films en ligne */
+            padding: 10px 0; /* Ajoute un peu d'espace autour */
+            will-change: transform; /* Améliore les performances du défilement */
+        }
+
+        .trending-movie {
+            display: inline-block; /* Affiche chaque film en ligne */
+            width: 200px; /* Largeur fixe pour chaque film */
+            margin-right: 15px; /* Espace entre les films */
+        }
+
+        .trending-movie img {
+            border-radius: 8px; /* Coins arrondis pour les affiches de films */
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -25,22 +48,57 @@
 
     <div class="container my-4">
         <h2 class="my-4">Films en Tendance</h2>
-        <div class="row">
-            {% for movie in trending_movies %}
-            <div class="col-md-3">
-                <div class="card mb-4 shadow-sm">
+        <div class="trending-movies-container" id="trendingMoviesContainer">
+            <div class="trending-movies" id="trendingMovies">
+                {% for movie in trending_movies %}
+                <div class="trending-movie">
                     <a href="/movie/{{ movie['id'] }}">
-                        <img src="https://image.tmdb.org/t/p/w300{{ movie['poster_path'] }}" class="card-img-top" alt="Affiche du film {{ movie['title'] }}">
+                        <img src="https://image.tmdb.org/t/p/w300{{ movie['poster_path'] }}" class="img-fluid" alt="Affiche du film {{ movie['title'] }}">
                     </a>
-                    <div class="card-body">
+                    <div class="text-center mt-2">
                         <h5 class="card-title">{{ movie['title'] }}</h5>
                         <p class="card-text">Note : {{ movie['vote_average'] }}</p>
                         <a href="/movie/{{ movie['id'] }}" class="btn btn-primary">Voir les détails</a>
                     </div>
                 </div>
+                {% endfor %}
+                <!-- Ajoute à nouveau les films pour le défilement continu -->
+                {% for movie in trending_movies %}
+                <div class="trending-movie">
+                    <a href="/movie/{{ movie['id'] }}">
+                        <img src="https://image.tmdb.org/t/p/w300{{ movie['poster_path'] }}" class="img-fluid" alt="Affiche du film {{ movie['title'] }}">
+                    </a>
+                    <div class="text-center mt-2">
+                        <h5 class="card-title">{{ movie['title'] }}</h5>
+                        <p class="card-text">Note : {{ movie['vote_average'] }}</p>
+                        <a href="/movie/{{ movie['id'] }}" class="btn btn-primary">Voir les détails</a>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
         </div>
     </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        const trendingMovies = document.getElementById('trendingMovies');
+        let scrollAmount = 0;
+
+        function autoScroll() {
+            scrollAmount += 1; // Ajuste la vitesse du défilement ici
+            trendingMovies.style.transform = `translateX(-${scrollAmount}px)`; // Défilement vers la gauche
+
+            // Réinitialise le défilement lorsque l'on atteint la fin de la première série de films
+            if (scrollAmount >= trendingMovies.scrollWidth / 2) {
+                scrollAmount = 0;
+                trendingMovies.style.transform = 'translateX(0)'; // Réinitialise la position
+            }
+        }
+
+        setInterval(autoScroll, 20); // Défilement toutes les 20 ms
+    </script>
 </body>
 </html>
