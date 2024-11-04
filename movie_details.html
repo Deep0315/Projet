@@ -7,7 +7,82 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f4f4f4;
+        }
+        .movie-poster {
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .movie-title {
+            font-size: 2.5em;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .genre-badge {
+            margin-right: 5px;
+        }
+        .synopsis {
+            font-size: 1.1em;
+            color: #555;
+            margin-bottom: 20px;
+        }
+        .rating {
+            font-size: 1.2em;
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+        .carousel-item h5 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .trailer-video {
+            margin-top: 20px;
+            width: 100%;
+            height: 450px;
+        }
+        .recommendations, .collection {
+            margin-top: 40px;
+        }
+        .recommendation-title, .collection-title {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .recommendation-container, .collection-container {
+            display: flex;
+            overflow-x: auto;
+            white-space: nowrap;
+            padding-bottom: 20px;
+        }
+        .recommendation-movie, .collection-movie {
+            display: inline-block;
+            margin-right: 20px;
+            width: 150px; /* Réduction de la taille */
+            flex-shrink: 0;
+        }
+        .recommendation-movie img, .collection-movie img {
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            height: auto;
+        }
+        .card-body {
+            padding: 10px;
+            text-align: center;
+        }
+        .card-title {
+            font-size: 0.9em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .card-text {
+            font-size: 0.8em;
+            color: #555;
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -25,76 +100,90 @@
     </nav>
 
     <div class="container my-4">
-        <h1 class="text-center">{{ movie['title'] }}</h1>
         <div class="row">
             <div class="col-md-4">
-                <img src="https://image.tmdb.org/t/p/w300{{ movie['poster_path'] }}" class="img-fluid" alt="Affiche du film {{ movie['title'] }}">
+                <img src="https://image.tmdb.org/t/p/w300{{ movie['poster_path'] }}" class="img-fluid movie-poster" alt="Affiche du film {{ movie['title'] }}">
             </div>
             <div class="col-md-8">
-                <h4>Synopsis :</h4>
-                <p>{{ movie['overview'] }}</p>
-                <p><strong>Date de sortie :</strong> {{ movie['release_date'] }}</p>
-                <p><strong>Note :</strong> {{ movie['vote_average'] }} / 10</p>
-                <p><strong>Genres :</strong>
+                <h1 class="movie-title">{{ movie['title'] }}</h1>
+                <div class="rating">Note : {{ movie['vote_average'] }} / 10</div>
+                <div>
+                    <strong>Genres :</strong>
                     {% for genre in movie['genres'] %}
-                        {{ genre['name'] }}{% if not loop.last %}, {% endif %}
+                        <span class="badge badge-secondary genre-badge">{{ genre['name'] }}</span>
                     {% endfor %}
-                </p>
-
-                <h4>Bandes-Annonces :</h4>
-                {% if videos %}
-                    <div id="trailerCarousel" class="carousel slide" data-ride="carousel">
-                        <div class="carousel-inner">
-                            {% for video in videos %}
-                            <div class="carousel-item {% if loop.first %}active{% endif %}">
-                                <h5>{{ video['name'] }}</h5>
-                                <iframe width="100%" height="315" src="https://www.youtube.com/embed/{{ video['key'] }}" frameborder="0" allowfullscreen></iframe>
-                            </div>
-                            {% endfor %}
-                        </div>
-                        <a class="carousel-control-prev" href="#trailerCarousel" role="button" data-slide="prev">
-                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                            <span class="sr-only">Précédent</span>
-                        </a>
-                        <a class="carousel-control-next" href="#trailerCarousel" role="button" data-slide="next">
-                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                            <span class="sr-only">Suivant</span>
-                        </a>
-                    </div>
-                {% else %}
-                    <p>Aucune bande-annonce n'est disponible pour ce film.</p>
-                {% endif %}
-
-                <!-- Boutons de like et dislike avec icônes de pouces -->
-                <div class="my-4">
-                    <button onclick="rateMovie({{ movie['id'] }}, 'like', {{ user_id }})" class="btn btn-outline-success">
-                        <i class="fas fa-thumbs-up"></i>
-                    </button>
-                    <button onclick="rateMovie({{ movie['id'] }}, 'dislike', {{ user_id }})" class="btn btn-outline-danger">
-                        <i class="fas fa-thumbs-down"></i>
-                    </button>
                 </div>
+                <h4>Synopsis :</h4>
+                <p class="synopsis">{{ movie['overview'] }}</p>
+                <p><strong>Date de sortie :</strong> {{ movie['release_date'] }}</p>
+            </div>
+        </div>
 
-                <a href="/" class="btn btn-secondary mt-3">Retour à l'accueil</a>
+        <h4 class="mt-4">Bandes-Annonces :</h4>
+        {% if videos %}
+            <div id="trailerCarousel" class="carousel slide" data-ride="carousel">
+                <div class="carousel-inner">
+                    {% for video in videos %}
+                    <div class="carousel-item {% if loop.first %}active{% endif %}">
+                        <h5>{{ video['name'] }}</h5>
+                        <iframe class="d-block trailer-video" src="https://www.youtube.com/embed/{{ video['key'] }}" frameborder="0" allowfullscreen></iframe>
+                    </div>
+                    {% endfor %}
+                </div>
+                <a class="carousel-control-prev" href="#trailerCarousel" role="button" data-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="sr-only">Précédent</span>
+                </a>
+                <a class="carousel-control-next" href="#trailerCarousel" role="button" data-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="sr-only">Suivant</span>
+                </a>
+            </div>
+        {% else %}
+            <p>Aucune bande-annonce n'est disponible pour ce film.</p>
+        {% endif %}
+
+        {% if collection %}
+        <div class="collection">
+            <h4 class="collection-title">De la collection :</h4>
+            <div class="collection-container">
+                {% for item in collection['parts'] %}
+                <div class="collection-movie">
+                    <div class="card">
+                        <img src="https://image.tmdb.org/t/p/w300{{ item['poster_path'] }}" class="card-img-top" alt="Affiche de {{ item['title'] }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ item['title'] }}</h5>
+                            <p class="card-text">Note : {{ item['vote_average'] }} / 10</p>
+                            <a href="/movie/{{ item['id'] }}" class="btn btn-primary btn-sm">Voir les détails</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="recommendations">
+            <h4 class="recommendation-title">Films Similaires :</h4>
+            <div class="recommendation-container">
+                {% for recommendation in recommendations %}
+                <div class="recommendation-movie">
+                    <div class="card">
+                        <img src="https://image.tmdb.org/t/p/w300{{ recommendation['poster_path'] }}" class="card-img-top" alt="Affiche de {{ recommendation['title'] }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ recommendation['title'] }}</h5>
+                            <p class="card-text">Note : {{ recommendation['vote_average'] }} / 10</p>
+                            <a href="/movie/{{ recommendation['id'] }}" class="btn btn-primary btn-sm">Voir les détails</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
-    <script>
-        function rateMovie(movieId, action, userId) {
-            const url = action === 'like' ? '/like' : '/dislike';
-            $.post(url, { movie_id: movieId, user_id: userId }, function(response) {
-                if (response.status === 'success') {
-                    alert(`${action === 'like' ? 'Vous avez aimé ce film!' : 'Vous n\'aimez pas ce film!'}`);
-                } else {
-                    alert('Une erreur est survenue. Veuillez réessayer.');
-                }
-            });
-        }
-    </script>
 </body>
 </html>
