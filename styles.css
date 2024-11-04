@@ -16,7 +16,22 @@ h1 {
     margin-bottom: 20px;
 }
 
-.card {
+/* Style pour le formulaire de recherche */
+#search-form {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px; /* Espace entre la barre de recherche et les suggestions */
+}
+
+/* Style pour le conteneur de suggestions */
+#suggestions {
+    margin-top: 20px; /* Ajoute de l'espace au-dessus des suggestions */
+}
+
+/* Style pour chaque carte de film dans les suggestions */
+#suggestions .card {
+    width: 150px; /* Réduit la largeur des cartes */
+    margin: 10px; /* Ajoute de l'espace autour de chaque carte */
     border: none;
     border-radius: 8px;
     overflow: hidden;
@@ -24,37 +39,52 @@ h1 {
     transition: transform 0.2s;
 }
 
-.card:hover {
+/* Effet au survol pour chaque carte */
+#suggestions .card:hover {
     transform: scale(1.05);
 }
 
-.card img {
+/* Style pour les images dans les cartes de film */
+#suggestions .card img {
+    width: 100%;
+    height: 225px; /* Ajuste la hauteur de l'image */
     border-bottom: 1px solid #ddd;
+    object-fit: cover;
 }
 
-.card-body {
-    padding: 15px;
+/* Style pour le corps de chaque carte */
+#suggestions .card-body {
+    padding: 10px;
+    text-align: center;
 }
 
-.card-title {
-    font-size: 1.25em;
+/* Style pour le titre de la carte */
+#suggestions .card-title {
+    font-size: 1em;
     margin: 0;
     color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.card-text {
+/* Style pour le texte secondaire de la carte */
+#suggestions .card-text {
+    font-size: 0.9em;
     color: #555;
 }
 
-.btn {
+/* Style pour le bouton de détails */
+#suggestions .btn {
     background-color: #007bff;
     color: white;
     border: none;
     border-radius: 4px;
-    padding: 10px 15px;
+    padding: 5px 10px;
+    font-size: 0.9em;
     text-decoration: none;
 }
 
-.btn:hover {
+#suggestions .btn:hover {
     background-color: #0056b3;
 }
