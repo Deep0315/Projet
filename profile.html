@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>User Profile</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f4f4f4;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    h2 {
+      color: #555;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 10px;
+    }
+    p {
+      line-height: 1.6;
+    }
+    a {
+      display: block;
+      margin-top: 10px;
+      color: #007bff;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Welcome, {{ user_info.username }}!</h1>
+
+    <h2>Basic Information</h2>
+    <p><strong>Email:</strong> {{ user_info.email }}</p>
+    <p><strong>Name:</strong> {{ user_info.first_name }} {{ user_info.last_name }}</p>
+    <p><strong>Birthdate:</strong> {{ user_info.birthdate }}</p>
+    <p><strong>Gender:</strong> {{ user_info.gender }}</p>
+
+    <h2>Contact Information</h2>
+    <p><strong>Address:</strong> {{ user_info.address }}</p>
+    <p><strong>Phone Number:</strong> {{ user_info.phone_number }}</p>
+    <p><strong>Social Media:</strong> {{ user_info.social_media }}</p>
+
+    <h2>Preferences</h2>
+    <p><strong>Preferred Language:</strong> {{ user_info.preferred_language }}</p>
+    <p><strong>Notification Preferences:</strong> {{ user_info.notification_preferences }}</p>
+    <p><strong>Privacy Preferences:</strong> {{ user_info.privacy_preferences }}</p>
+
+    <h2>Activity History</h2>
+    <p><strong>Movies Watched:</strong> {{ user_info.movies_watched }}</p>
+    <p><strong>Comments Posted:</strong> {{ user_info.comments_posted }}</p>
+    <p><strong>Wishlist:</strong> {{ user_info.wishlist }}</p>
+
+    <h2>Statistics</h2>
+    <p><strong>Number of Movies Watched:</strong> {{ user_info.number_of_movies_watched }}</p>
+    <p><strong>Total Watch Time:</strong> {{ user_info.total_watch_time }}</p>
+
+    <h2>Additional Features</h2>
+    <a href="/edit-profile">Edit Profile Information</a>
+    <a href="/change-password">Change Password</a>
+    <a href="/logout">Logout</a>
+    <a href="/"><i class="fas fa-home"></i> Home</a>
+  </div>
+</body>
+</html>
