@@ -2,7 +2,8 @@ from flask import Flask, render_template, request, jsonify, session, redirect, u
 import requests
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import LoginManager, login_user, logout_user, login_required, current_user, UserMixin
+from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy.orm import sessionmaker
 
 TMDB_API_KEY = '4163e84b912dcfb237a0df9026441baa'
 
@@ -11,14 +12,9 @@ app.config['SECRET_KEY'] = 'your-secret-key'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 db = SQLAlchemy(app)
 
-# Initialisation de Flask-Login
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'  # Vue de la page de connexion
-
 
 # Define the User model
-class User(db.Model, UserMixin):
+class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
@@ -26,13 +22,7 @@ class User(db.Model, UserMixin):
     preferences = db.Column(db.String(255))
 
 
-# Fonction de chargement de l'utilisateur pour Flask-Login
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
-
-
-# Récupération des informations utilisateur
+# Modify the get_user_info function to retrieve the user's information from the database
 def get_user_info(username):
     user = User.query.filter_by(username=username).first()
     if user:
@@ -41,15 +31,16 @@ def get_user_info(username):
             'email': user.email,
             'preferences': user.preferences.split(',') if user.preferences else []
         }
-    return None
+    else:
+        return None
 
 
-# Vérification des identifiants de connexion
 def check_credentials(username, password):
     user = User.query.filter_by(username=username).first()
     if user and check_password_hash(user.password_hash, password):
-        return user  # Retourne l'utilisateur si les identifiants sont corrects
-    return None
+        return True
+    else:
+        return False
 
 
 @app.route('/')
@@ -57,84 +48,91 @@ def index():
     trending_url = f"https://api.themoviedb.org/3/trending/movie/week?api_key={TMDB_API_KEY}&language=fr-FR"
     trending_response = requests.get(trending_url)
 
-    trending_movies = trending_response.json().get('results', []) if trending_response.status_code == 200 else []
+    if trending_response.status_code == 200:
+        trending_movies = trending_response.json()['results']
+    else:
+        trending_movies = []
 
-    return render_template('index.html', trending_movies=trending_movies, active_page='home',
-                           logged_in=current_user.is_authenticated)
+    # Passer une variable `logged_in` au template pour vérifier si l'utilisateur est connecté
+    logged_in = 'username' in session
+
+    return render_template('index.html', trending_movies=trending_movies, active_page='home', logged_in=logged_in)
 
 
 @app.route('/profile')
-@login_required
 def profile():
-    user_info = get_user_info(current_user.username)
-    return render_template('profil.html', user_info=user_info)
+    if 'username' in session:
+        # Récupérer les informations de profil de l'utilisateur à partir de la base de données ou d'un autre système de stockage sécurisé
+        user_info = get_user_info(session['username'])
+        return render_template('profil.html', user_info=user_info)
+    else:
+        flash('Vous devez être connecté pour accéder à cette page. Merci de vous connecter ou vous inscrire!')
+        return redirect(url_for('index'))
 
 
 @app.route('/connexion-account', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
+        # Récupérer les informations d'identification de l'utilisateur à partir du formulaire
         username = request.form['username']
         password = request.form['password']
-        user = check_credentials(username, password)
 
-        if user:
-            login_user(user)  # Utilise Flask-Login pour gérer la session
+        # Vérifier les informations d'identification de l'utilisateur
+        if check_credentials(username, password):  # Utilisation de la variable `password`
+            # Stocker le nom d'utilisateur dans la session
+            session['username'] = username
+
+            # Rediriger l'utilisateur vers la page de profil
             return redirect(url_for('profile'))
         else:
-            error = 'Nom d\'utilisateur ou mot de passe incorrect.'
-            return render_template('connexion.html', error=error)
+            # Envoyer un message d'erreur avec flash
+            flash('Nom d\'utilisateur ou mot de passe incorrect.', 'danger')
+            return redirect(url_for('login'))  # Rediriger pour afficher le message flash
     return render_template('connexion.html')
 
 
 @app.route('/create-account', methods=['POST'])
 def create_account():
+    # Récupérer les données du formulaire
     username = request.form['username']
     password = request.form['password']
     email = request.form['email']
 
-    # Vérification de l'existence de l'utilisateur
+    # Vérifier si l'utilisateur existe déjà dans la base de données
     existing_user = User.query.filter_by(username=username).first()
     if existing_user:
-        flash("Le nom d'utilisateur existe déjà.", 'error')
-        return redirect(url_for('login'))
+        # L'utilisateur existe déjà, gérer l'erreur ici
+        return "Username already exists"
 
+    # Hasher le mot de passe
     hashed_password = generate_password_hash(password)
+
+    # Créer un nouvel utilisateur
     new_user = User(username=username, password_hash=hashed_password, email=email)
 
+    # Ajouter l'utilisateur à la base de données
     db.session.add(new_user)
     db.session.commit()
 
-    login_user(new_user)  # Connecte automatiquement l'utilisateur
+    # Stocker le nom d'utilisateur dans la session de l'utilisateur
+    session['username'] = username
+
+    # Rediriger l'utilisateur vers la page de profil
     return redirect(url_for('profile'))
 
 
-@app.route('/update_user_info', methods=['GET', 'POST'])
-@login_required
-def update_user_info():
-    if request.method == 'POST':
-        current_user.username = request.form['nom']
-        current_user.email = request.form['email']
-        new_password = request.form['password']
-        confirm_password = request.form['confirm_password']
-
-        if new_password:
-            if new_password == confirm_password:
-                current_user.password_hash = generate_password_hash(new_password)
-            else:
-                flash("Les mots de passe ne correspondent pas.", "error")
-                return redirect(url_for('update_user_info'))
-
-        db.session.commit()
-        flash("Les informations ont été mises à jour avec succès!", "success")
-        return redirect(url_for('profile'))
-
-    return render_template('gestion_compte.html', user=current_user)
+@app.route('/search')
+def search_page():
+    logged_in = 'username' in session  # Vérifie si l'utilisateur est connecté
+    return render_template('search_results.html', active_page='search', logged_in=logged_in)
 
 
 @app.route('/logout')
-@login_required
 def logout():
-    logout_user()  # Utilise Flask-Login pour la déconnexion
+    # Supprimer les données de session de l'utilisateur
+    session.pop('username', None)
+
+    # Rediriger l'utilisateur vers la page d'accueil
     return redirect(url_for('index'))
 
 
@@ -144,8 +142,9 @@ def search_movies():
     if query:
         search_url = f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&language=fr-FR&query={query}"
         response = requests.get(search_url)
-        movies = response.json().get('results', []) if response.status_code == 200 else []
-        return jsonify(movies)
+        if response.status_code == 200:
+            movies = response.json().get('results', [])
+            return jsonify(movies)
     return jsonify({'error': 'No query provided'})
 
 
@@ -173,10 +172,15 @@ def movie_details(movie_id):
         collection_id = movie['belongs_to_collection']['id']
         collection_url = f"https://api.themoviedb.org/3/collection/{collection_id}?api_key={TMDB_API_KEY}&language=fr-FR"
         collection_response = requests.get(collection_url)
-        collection = collection_response.json() if collection_response.status_code == 200 else None
+        if collection_response.status_code == 200:
+            collection = collection_response.json()
+        else:
+            collection = None
+
+    logged_in = 'username' in session  # Vérifie si l'utilisateur est connecté
 
     return render_template('movie_details.html', movie=movie, videos=videos, recommendations=recommendations,
-                           collection=collection, logged_in=current_user.is_authenticated)
+                           collection=collection, logged_in=logged_in)
 
 
 with app.app_context():
