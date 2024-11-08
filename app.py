@@ -64,7 +64,7 @@ def profile():
     if 'username' in session:
         # Récupérer les informations de profil de l'utilisateur à partir de la base de données ou d'un autre système de stockage sécurisé
         user_info = get_user_info(session['username'])
-        return render_template('profile.html', user_info=user_info)
+        return render_template('profil.html', user_info=user_info)
     else:
         flash('Vous devez être connecté pour accéder à cette page. Merci de vous connecter ou vous inscrire!')
         return redirect(url_for('index'))
