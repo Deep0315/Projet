@@ -114,16 +114,27 @@ def create_account():
 @login_required
 def update_user_info():
     if request.method == 'POST':
-        current_user.username = request.form['nom']
-        current_user.email = request.form['email']
-        new_password = request.form['password']
-        confirm_password = request.form['confirm_password']
+        # Mettre à jour le nom d'utilisateur seulement si le champ est rempli
+        if request.form['nom']:
+            current_user.username = request.form['nom']
 
-        if new_password:
-            if new_password == confirm_password:
-                current_user.password_hash = generate_password_hash(new_password)
+        # Mettre à jour l'email seulement si le champ est rempli
+        if request.form['email']:
+            current_user.email = request.form['email']
+
+        # Mettre à jour le mot de passe seulement si les champs sont remplis et correspondent
+        new_password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+
+        if new_password or confirm_password:  # Vérifie si l'un des champs est renseigné
+            if new_password and confirm_password:  # Si les deux sont renseignés
+                if new_password == confirm_password:
+                    current_user.password_hash = generate_password_hash(new_password)
+                else:
+                    flash("Les mots de passe ne correspondent pas.", "error")
+                    return redirect(url_for('update_user_info'))
             else:
-                flash("Les mots de passe ne correspondent pas.", "error")
+                flash("Les deux champs du mot de passe doivent être remplis.", "error")
                 return redirect(url_for('update_user_info'))
 
         db.session.commit()

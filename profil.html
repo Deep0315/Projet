@@ -75,6 +75,25 @@
       color: #007bff;
     }
 
+    /* Message Flash */
+    .flash-message {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .flash-message .close {
+      position: absolute;
+      top: 5px;
+      right: 10px;
+      cursor: pointer;
+      color: white;
+      font-size: 18px;
+    }
+
     /* Responsive Design */
     @media (max-width: 768px) {
       .container {
@@ -93,6 +112,18 @@
 </head>
 <body>
   <div class="container">
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="flash-message">
+          {% for message in messages %}
+            <p>{{ message }}</p>
+          {% endfor %}
+          <span class="close" onclick="this.parentElement.style.display='none'">&times;</span>
+        </div>
+      {% endif %}
+    {% endwith %}
+
     <h1>Bienvenue, {{ user_info.username }}!</h1>
 
     <div class="section">
