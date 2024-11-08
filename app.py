@@ -65,7 +65,7 @@ def index():
 
 @app.route('/profile')
 @login_required
-def profile():
+def profil():
     user_info = get_user_info(current_user.username)
     return render_template('profil.html', user_info=user_info)
 
@@ -78,16 +78,13 @@ def login():
         password = request.form['password']
 
         # Vérifier les informations d'identification de l'utilisateur
-        if check_credentials(username, password):  # Utilisation de la variable `password`
-            # Stocker le nom d'utilisateur dans la session
-            session['username'] = username
-
-            # Rediriger l'utilisateur vers la page de profil
-            return redirect(url_for('profile'))
+        user = check_credentials(username, password)
+        if user:
+            login_user(user)  # Authentifie l'utilisateur avec Flask-Login
+            return redirect(url_for('profil'))
         else:
-            # Envoyer un message d'erreur avec flash
             flash('Nom d\'utilisateur ou mot de passe incorrect.', 'danger')
-            return redirect(url_for('login'))  # Rediriger pour afficher le message flash
+            return redirect(url_for('login'))
     return render_template('connexion.html')
 
 
@@ -110,7 +107,7 @@ def create_account():
     db.session.commit()
 
     login_user(new_user)  # Connecte automatiquement l'utilisateur
-    return redirect(url_for('profile'))
+    return redirect(url_for('profil'))
 
 
 @app.route('/update_user_info', methods=['GET', 'POST'])
@@ -131,7 +128,7 @@ def update_user_info():
 
         db.session.commit()
         flash("Les informations ont été mises à jour avec succès!", "success")
-        return redirect(url_for('profile'))
+        return redirect(url_for('profil'))
 
     return render_template('gestion_compte.html', user=current_user)
 
@@ -141,6 +138,11 @@ def update_user_info():
 def logout():
     logout_user()  # Utilise Flask-Login pour la déconnexion
     return redirect(url_for('index'))
+
+
+@app.route('/search')
+def search():
+    return render_template('search_results.html', active_page='search')
 
 
 @app.route('/search_movies')
