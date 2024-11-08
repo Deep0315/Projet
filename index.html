@@ -59,24 +59,30 @@
     {% endwith %}
 
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="/">NomDuSite</a>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                    <a class="nav-link {% if active_page == 'profile' %}font-weight-bold{% endif %}" href="/profile">Profil utilisateur</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if active_page == 'home' %}font-weight-bold{% endif %}" href="/">Accueil</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if active_page == 'search' %}font-weight-bold{% endif %}" href="/search">Recherche</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if active_page == 'create' %}font-weight-bold{% endif %}" href="/Creation">Inscription</a>
-                </li>
-            </ul>
-        </div>
-    </nav>
+    <a class="navbar-brand" href="/">NomDuSite</a>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav mr-auto"> <!-- Liens à gauche -->
+            <li class="nav-item">
+                <a class="nav-link {% if active_page == 'home' %}font-weight-bold{% endif %}" href="/">Accueil</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if active_page == 'search' %}font-weight-bold{% endif %}" href="/search">Recherche</a>
+            </li>
+        </ul>
+        <ul class="navbar-nav ml-auto"> <!-- Liens à droite -->
+    {% if logged_in %}
+        <li class="nav-item">
+            <a class="nav-link {% if active_page == 'profile' %}font-weight-bold{% endif %}" href="/profile">Profil</a>
+        </li>
+    {% else %}
+        <li class="nav-item">
+            <a class="nav-link {% if active_page == 'create' %}font-weight-bold{% endif %}" href="/Creation">Inscription/Connexion</a>
+        </li>
+    {% endif %}
+</ul>
+
+    </div>
+</nav>
 
     <div class="container my-4">
         <h2 class="my-4">Films en Tendance</h2>

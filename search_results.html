@@ -10,21 +10,30 @@
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="/">NomDuSite</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav">
+    <a class="navbar-brand" href="/">NomDuSite</a>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav mr-auto"> <!-- Liens à gauche -->
+            <li class="nav-item">
+                <a class="nav-link {% if active_page == 'home' %}font-weight-bold{% endif %}" href="/">Accueil</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if active_page == 'search' %}font-weight-bold{% endif %}" href="/search">Recherche</a>
+            </li>
+        </ul>
+        <ul class="navbar-nav ml-auto"> <!-- Liens à droite -->
+            {% if logged_in %}
                 <li class="nav-item">
-                    <a class="nav-link {% if active_page == 'home' %}font-weight-bold{% endif %}" href="/">Accueil</a>
+                    <a class="nav-link {% if active_page == 'profile' %}font-weight-bold{% endif %}" href="/profile">Profil</a>
                 </li>
+            {% else %}
                 <li class="nav-item">
-                    <a class="nav-link {% if active_page == 'search' %}font-weight-bold{% endif %}" href="/search">Recherche</a>
+                    <a class="nav-link {% if active_page == 'create' %}font-weight-bold{% endif %}" href="/Creation">Inscription/Connexion</a>
                 </li>
-            </ul>
-        </div>
-    </nav>
+            {% endif %}
+        </ul>
+    </div>
+</nav>
+
 
     <div class="container my-4">
         <h1 class="text-center">Recherche de Films</h1>

@@ -12,6 +12,7 @@ app.config['SECRET_KEY'] = 'your-secret-key'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 db = SQLAlchemy(app)
 
+
 # Define the User model
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -19,6 +20,7 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
     preferences = db.Column(db.String(255))
+
 
 # Modify the get_user_info function to retrieve the user's information from the database
 def get_user_info(username):
@@ -32,12 +34,14 @@ def get_user_info(username):
     else:
         return None
 
+
 def check_credentials(username, password):
     user = User.query.filter_by(username=username).first()
     if user and check_password_hash(user.password_hash, password):
         return True
     else:
         return False
+
 
 @app.route('/')
 def index():
@@ -49,7 +53,11 @@ def index():
     else:
         trending_movies = []
 
-    return render_template('index.html', trending_movies=trending_movies, active_page='home')
+    # Passer une variable `logged_in` au template pour vérifier si l'utilisateur est connecté
+    logged_in = 'username' in session
+
+    return render_template('index.html', trending_movies=trending_movies, active_page='home', logged_in=logged_in)
+
 
 @app.route('/profile')
 def profile():
@@ -60,6 +68,7 @@ def profile():
     else:
         flash('Vous devez être connecté pour accéder à cette page. Merci de vous connecter ou vous inscrire!')
         return redirect(url_for('index'))
+
 
 @app.route('/connexion-account', methods=['GET', 'POST'])
 def login():
@@ -112,9 +121,12 @@ def create_account():
     # Rediriger l'utilisateur vers la page de profil
     return redirect(url_for('profile'))
 
+
 @app.route('/search')
 def search_page():
-    return render_template('search_results.html', active_page='search')
+    logged_in = 'username' in session  # Vérifie si l'utilisateur est connecté
+    return render_template('search_results.html', active_page='search', logged_in=logged_in)
+
 
 @app.route('/logout')
 def logout():
@@ -123,6 +135,7 @@ def logout():
 
     # Rediriger l'utilisateur vers la page d'accueil
     return redirect(url_for('index'))
+
 
 @app.route('/search_movies')
 def search_movies():
@@ -135,9 +148,11 @@ def search_movies():
             return jsonify(movies)
     return jsonify({'error': 'No query provided'})
 
+
 @app.route('/Creation')
 def create():
-    return render_template('Creation.html')
+    return render_template('Inscription.html')
+
 
 @app.route('/movie/<int:movie_id>')
 def movie_details(movie_id):
@@ -163,8 +178,11 @@ def movie_details(movie_id):
         else:
             collection = None
 
+    logged_in = 'username' in session  # Vérifie si l'utilisateur est connecté
+
     return render_template('movie_details.html', movie=movie, videos=videos, recommendations=recommendations,
-                           collection=collection)
+                           collection=collection, logged_in=logged_in)
+
 
 with app.app_context():
     db.create_all()
