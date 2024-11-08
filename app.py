@@ -73,16 +73,21 @@ def profile():
 @app.route('/connexion-account', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
+        # Récupérer les informations d'identification de l'utilisateur à partir du formulaire
         username = request.form['username']
         password = request.form['password']
-        user = check_credentials(username, password)
 
-        if user:
-            login_user(user)  # Utilise Flask-Login pour gérer la session
+        # Vérifier les informations d'identification de l'utilisateur
+        if check_credentials(username, password):  # Utilisation de la variable `password`
+            # Stocker le nom d'utilisateur dans la session
+            session['username'] = username
+
+            # Rediriger l'utilisateur vers la page de profil
             return redirect(url_for('profile'))
         else:
-            error = 'Nom d\'utilisateur ou mot de passe incorrect.'
-            return render_template('connexion.html', error=error)
+            # Envoyer un message d'erreur avec flash
+            flash('Nom d\'utilisateur ou mot de passe incorrect.', 'danger')
+            return redirect(url_for('login'))  # Rediriger pour afficher le message flash
     return render_template('connexion.html')
 
 
