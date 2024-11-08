@@ -86,6 +86,16 @@
 </head>
 <body>
   <div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}" style="color: red; font-weight: bold; margin-bottom: 15px;">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
     <h1>Connexion</h1>
     <form action="/connexion-account" method="POST">
       <label for="username">Nom d'utilisateur :</label>

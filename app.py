@@ -77,19 +77,18 @@ def login():
         username = request.form['username']
         password = request.form['password']
 
-        # Vérifier les informations d'identification de l'utilisateur en les comparant aux informations stockées dans la base de données ou dans un autre système de stockage sécurisé
-        if check_credentials(username, request.form['password']):
-            # Stocker le nom d'utilisateur dans la session de l'utilisateur
+        # Vérifier les informations d'identification de l'utilisateur
+        if check_credentials(username, password):  # Utilisation de la variable `password`
+            # Stocker le nom d'utilisateur dans la session
             session['username'] = username
 
             # Rediriger l'utilisateur vers la page de profil
             return redirect(url_for('profile'))
         else:
-            # Afficher un message d'erreur sur la page de connexion
-            error = 'Nom d\'utilisateur ou mot de passe incorrect.'
-            return render_template('connexion.html', error=error)
-    else:
-        return render_template('connexion.html')
+            # Envoyer un message d'erreur avec flash
+            flash('Nom d\'utilisateur ou mot de passe incorrect.', 'danger')
+            return redirect(url_for('login'))  # Rediriger pour afficher le message flash
+    return render_template('connexion.html')
 
 
 @app.route('/create-account', methods=['POST'])
