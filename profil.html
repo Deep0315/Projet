@@ -3,78 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>User Profile</title>
+  <title>Profil</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/css/bootstrap.min.css">
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 0;
-      padding: 20px;
+      padding: 0;
       background-color: #f4f4f4;
     }
-
     .container {
       max-width: 900px;
       margin: auto;
-      background-color: #fff;
-      padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+      padding: 20px;
     }
-
-    h1 {
-      text-align: center;
-      color: #333;
-    }
-
-    h2 {
-      color: #555;
-      border-bottom: 2px solid #eee;
-      padding-bottom: 10px;
-      font-size: 1.2em;
-      margin-top: 30px;
-    }
-
-    p {
-      line-height: 1.6;
-      color: #555;
-    }
-
-    strong {
-      color: #333;
-    }
-
-    a {
-      display: inline-block;
-      margin-top: 10px;
-      color: #007bff;
-      text-decoration: none;
-      font-weight: 500;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
-
-    .section {
-      margin-bottom: 20px;
-    }
-
-    .links {
-      margin-top: 30px;
-      text-align: center;
-    }
-
-    .links a {
-      margin: 0 15px;
-    }
-
-    /* Style des icônes Font Awesome */
-    .section i {
-      margin-right: 10px;
-      color: #007bff;
-    }
-
     /* Message Flash */
     .flash-message {
       background-color: #4CAF50;
@@ -84,7 +27,6 @@
       margin-bottom: 20px;
       position: relative;
     }
-
     .flash-message .close {
       position: absolute;
       top: 5px;
@@ -93,26 +35,45 @@
       color: white;
       font-size: 18px;
     }
-
-    /* Responsive Design */
-    @media (max-width: 768px) {
-      .container {
-        padding: 20px;
-      }
-
-      h2 {
-        font-size: 1.1em;
-      }
-
-      .section p {
-        font-size: 0.95em;
-      }
-    }
   </style>
 </head>
 <body>
-  <div class="container">
+  <!-- Barre de navigation -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="/">NomDuSite</a>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+          <a class="nav-link {% if active_page == 'home' %}font-weight-bold{% endif %}" href="/">Accueil</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if active_page == 'search' %}font-weight-bold{% endif %}" href="/search">Recherche</a>
+        </li>
+      </ul>
+      <ul class="navbar-nav ml-auto">
+        {% if logged_in %}
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle {% if active_page == 'profile' %}font-weight-bold{% endif %}" href="#" id="profileDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Profil
+          </a>
+          <div class="dropdown-menu dropdown-menu-right" aria-labelledby="profileDropdown">
+            <a class="dropdown-item" href="/profile">Mon Profil</a>
+            <a class="dropdown-item" href="{{ url_for('update_user_info') }}">Modifier le profil</a>
+            <a class="dropdown-item" href="{{ url_for('logout') }}">Déconnexion</a>
+          </div>
+        </li>
+        {% else %}
+        <li class="nav-item">
+          <a class="nav-link {% if active_page == 'create' %}font-weight-bold{% endif %}" href="/connexion-account">Inscription/Connexion</a>
+        </li>
+        {% endif %}
+      </ul>
+    </div>
+  </nav>
 
+  <!-- Contenu principal -->
+  <div class="container">
+    <!-- Messages Flash -->
     {% with messages = get_flashed_messages() %}
       {% if messages %}
         <div class="flash-message">
@@ -124,47 +85,63 @@
       {% endif %}
     {% endwith %}
 
-    <h1>Bienvenue, {{ user_info.username }}!</h1>
-
-    <div class="section">
-      <h2><i class="fas fa-user-circle"></i>Informations de base</h2>
-      <p><strong>Email:</strong> {{ user_info.email }}</p>
-      <p><strong>Nom:</strong> {{ user_info.first_name }} {{ user_info.last_name }}</p>
-      <p><strong>Date de naissance:</strong> {{ user_info.birthdate }}</p>
-      <p><strong>Genre:</strong> {{ user_info.gender }}</p>
+    <div class="text-center my-4">
+      <h1 class="display-4">Bienvenue, {{ user_info.username }}!</h1>
     </div>
 
-    <div class="section">
-      <h2><i class="fas fa-phone"></i>Informations de contact</h2>
-      <p><strong>Adresse:</strong> {{ user_info.address }}</p>
-      <p><strong>Téléphone:</strong> {{ user_info.phone_number }}</p>
-      <p><strong>Réseaux sociaux:</strong> {{ user_info.social_media }}</p>
-    </div>
+    <h2 class="mb-4">Historique des films consultés</h2>
 
-    <div class="section">
-      <h2><i class="fas fa-cogs"></i>Préférences</h2>
-      <p><strong>Langue préférée:</strong> {{ user_info.preferred_language }}</p>
-      <p><strong>Préférences de notification:</strong> {{ user_info.notification_preferences }}</p>
-      <p><strong>Préférences de confidentialité:</strong> {{ user_info.privacy_preferences }}</p>
-    </div>
+    <!-- Liste des films consultés -->
+    <ul class="list-group mb-4">
+      {% for entry in history %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+          <strong>{{ entry.title }}</strong>
+          <p class="mb-0 text-muted">Consulté le {{ entry.timestamp.strftime('%d/%m/%Y à %H:%M') }}</p>
+        </div>
+        <a href="/movie/{{ entry.movie_id }}" class="btn btn-primary btn-sm">Voir le film</a>
+      </li>
+      {% endfor %}
+    </ul>
 
-    <div class="section">
-      <h2><i class="fas fa-history"></i>Historique d'activité</h2>
-      <p><strong>Films regardés:</strong> {{ user_info.movies_watched }}</p>
-      <p><strong>Commentaires publiés:</strong> {{ user_info.comments_posted }}</p>
-      <p><strong>Liste de souhaits:</strong> {{ user_info.wishlist }}</p>
-    </div>
+    <!-- Pagination -->
+    <nav>
+      <ul class="pagination justify-content-center">
+        {% if pagination.has_prev %}
+        <li class="page-item">
+          <a class="page-link" href="{{ url_for('profil', page=pagination.prev_num) }}">Précédent</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+          <a class="page-link">Précédent</a>
+        </li>
+        {% endif %}
 
-    <div class="section">
-      <h2><i class="fas fa-chart-bar"></i>Statistiques</h2>
-      <p><strong>Nombre de films regardés:</strong> {{ user_info.number_of_movies_watched }}</p>
-      <p><strong>Temps total de visionnage:</strong> {{ user_info.total_watch_time }}</p>
-    </div>
+        {% for page_num in pagination.iter_pages(left_edge=2, right_edge=2, left_current=2, right_current=2) %}
+        {% if page_num %}
+        <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+          <a class="page-link" href="{{ url_for('profil', page=page_num) }}">{{ page_num }}</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><a class="page-link">...</a></li>
+        {% endif %}
+        {% endfor %}
 
-    <div class="links">
-      <a href="/logout"><i class="fas fa-sign-out-alt"></i>Se déconnecter</a>
-      <a href="/"><i class="fas fa-home"></i> Accueil</a>
-    </div>
+        {% if pagination.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="{{ url_for('profil', page=pagination.next_num) }}">Suivant</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+          <a class="page-link">Suivant</a>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
   </div>
+
+  <!-- Scripts Bootstrap -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
