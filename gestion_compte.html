@@ -68,9 +68,9 @@
             min-height: 60px;
         }
 
-        /* Style du bouton */
-        input[type="submit"] {
-            background-color: #4CAF50;
+        /* Style des boutons */
+        input[type="submit"],
+        .back-button button {
             color: white;
             padding: 12px 20px;
             border: none;
@@ -78,11 +78,24 @@
             cursor: pointer;
             font-size: 16px;
             width: 100%;
+            margin-top: 10px;
             transition: background-color 0.3s ease;
+        }
+
+        input[type="submit"] {
+            background-color: #4CAF50;
         }
 
         input[type="submit"]:hover {
             background-color: #45a049;
+        }
+
+        .back-button button {
+            background-color: #f44336; /* Rouge */
+        }
+
+        .back-button button:hover {
+            background-color: #e53935; /* Rouge plus sombre */
         }
 
         /* Style des divs de champs */
@@ -137,6 +150,10 @@
 
         <div class="form-group">
             <input type="submit" value="Enregistrer les modifications">
+        </div>
+
+        <div class="back-button">
+            <button type="button" onclick="window.history.back()">Retour</button>
         </div>
     </form>
 </body>
