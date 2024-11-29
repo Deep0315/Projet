@@ -174,16 +174,50 @@ def index():
 
 @app.route('/movie/<int:movie_id>')
 def movie_details(movie_id):
+    # Récupérer les informations du film
     movie_url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key={TMDB_API_KEY}&language=fr-FR"
-    movie = requests.get(movie_url).json()
+    movie_response = requests.get(movie_url)
+    movie = movie_response.json()
 
+    # Vérifier si la réponse du film est valide
+    if movie_response.status_code != 200:
+        return render_template('error.html', message="Film introuvable")
+
+    # Récupérer les vidéos du film
+    videos_url = f"https://api.themoviedb.org/3/movie/{movie_id}/videos?api_key={TMDB_API_KEY}&language=fr-FR"
+    videos_response = requests.get(videos_url)
+    videos = videos_response.json().get('results', [])
+
+    # Récupérer les films similaires
+    recommendations_url = f"https://api.themoviedb.org/3/movie/{movie_id}/recommendations?api_key={TMDB_API_KEY}&language=fr-FR"
+    recommendations_response = requests.get(recommendations_url)
+    recommendations = recommendations_response.json().get('results', [])
+
+    # Récupérer la collection si elle existe
+    collection = None
+    if 'belongs_to_collection' in movie and movie['belongs_to_collection']:
+        collection_id = movie['belongs_to_collection']['id']
+        collection_url = f"https://api.themoviedb.org/3/collection/{collection_id}?api_key={TMDB_API_KEY}&language=fr-FR"
+        collection_response = requests.get(collection_url)
+        if collection_response.status_code == 200:
+            collection = collection_response.json()
+
+    # Ajouter l'historique de visionnage si l'utilisateur est authentifié
     if current_user.is_authenticated:
         if not MovieHistory.query.filter_by(user_id=current_user.id, movie_id=movie_id).first():
             new_history = MovieHistory(user_id=current_user.id, movie_id=movie_id, title=movie.get('title', ''))
             db.session.add(new_history)
             db.session.commit()
 
-    return render_template('movie_details.html', movie=movie, logged_in=current_user.is_authenticated)
+    # Passer toutes les données nécessaires au template
+    return render_template(
+        'movie_details.html',
+        movie=movie,
+        videos=videos,  # Passer les vidéos
+        recommendations=recommendations,  # Passer les films similaires
+        collection=collection,  # Passer la collection
+        logged_in=current_user.is_authenticated  # Passer l'état de connexion
+    )
 
 
 @app.route('/search')
