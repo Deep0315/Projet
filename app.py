@@ -39,6 +39,13 @@ class MovieHistory(db.Model):
     timestamp = db.Column(db.DateTime, default=db.func.current_timestamp())
 
 
+class FavoriteMovie(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    movie_id = db.Column(db.Integer, nullable=False)
+    title = db.Column(db.String(255), nullable=False)
+
+
 # ==============================================
 # Fonctions utilitaires
 # ==============================================
@@ -219,6 +226,54 @@ def movie_details(movie_id):
         logged_in=current_user.is_authenticated  # Passer l'état de connexion
     )
 
+
+@app.route('/add_favorite/<int:movie_id>', methods=['POST'])
+@login_required
+def add_favorite(movie_id):
+    movie_title = request.form.get('title')
+
+    # Vérifier si le film n'est pas déjà dans les favoris
+    if not FavoriteMovie.query.filter_by(user_id=current_user.id, movie_id=movie_id).first():
+        # Ajouter le film aux favoris
+        favorite = FavoriteMovie(user_id=current_user.id, movie_id=movie_id, title=movie_title)
+        db.session.add(favorite)
+        db.session.commit()
+
+        # Message flash indiquant que le film a été ajouté avec succès
+        flash(f'Le film "{movie_title}" a été ajouté à vos favoris.', 'success')
+    else:
+        # Message flash si le film est déjà dans les favoris
+        flash('Ce film est déjà dans vos favoris.', 'info')
+
+    # Rediriger vers la page de détails du film
+    return redirect(url_for('movie_details', movie_id=movie_id))
+
+
+@app.route('/remove_favorite/<int:movie_id>', methods=['POST'])
+@login_required
+def remove_favorite(movie_id):
+    favorite = FavoriteMovie.query.filter_by(user_id=current_user.id, movie_id=movie_id).first()
+    if favorite:
+        db.session.delete(favorite)
+        db.session.commit()
+        flash('Le film a été retiré de vos favoris.', 'success')
+    else:
+        flash('Ce film n\'est pas dans vos favoris.', 'info')
+    return redirect(url_for('favorites'))
+
+
+@app.route('/favorites')
+@login_required
+def favorites():
+    favorites = FavoriteMovie.query.filter_by(user_id=current_user.id).all()
+
+    # Ajouter les informations de poster pour chaque film favori
+    for favorite in favorites:
+        movie_url = f"https://api.themoviedb.org/3/movie/{favorite.movie_id}?api_key={TMDB_API_KEY}&language=fr-FR"
+        movie_response = requests.get(movie_url).json()
+        favorite.poster_path = movie_response.get('poster_path', '')  # Assurer que poster_path est récupéré
+
+    return render_template('favorites.html', favorites=favorites, logged_in=current_user.is_authenticated)
 
 @app.route('/search')
 def search():
