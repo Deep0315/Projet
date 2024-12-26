@@ -4,49 +4,108 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mes Favoris</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
-            background-color: #f4f4f4;
-        }
-
-        .movie-poster {
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            max-width: 100%;
-            height: auto;
-        }
-
-        .movie-title {
-            font-size: 1em;
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f4f9;
             color: #333;
+            margin: 0;
+            padding: 0;
         }
 
-        .card-body {
-            padding: 10px;
-            text-align: center;
+        nav {
+            background-color: #343a40;
         }
 
-        .btn-details, .btn-remove {
-            margin-top: 10px;
-            width: 100%; /* Le bouton occupe toute la largeur */
+        .navbar-brand {
+            color: #f8f9fa;
         }
 
-        .row {
+        .navbar-nav .nav-link {
+            color: #f8f9fa !important;
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: #f0ad4e !important;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-top: 50px;
+            margin-bottom: 30px;
+        }
+
+        .movie-grid {
             display: grid;
-            grid-template-columns: repeat(5, 1fr); /* 5 films par ligne */
-            gap: 20px; /* Espacement entre les films */
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
         }
 
         .card {
-            margin-bottom: 10px;
+            border: none;
+            border-radius: 12px;
+            overflow: hidden; /* Assure que tout ce qui dépasse est masqué */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .movie-poster {
+            width: 100%; /* Adapte la largeur de l'image à la carte */
+            height: 270px; /* Définit une hauteur fixe pour les images */
+            object-fit: cover; /* Assure que l'image reste proportionnelle et remplit son conteneur */
+        }
+
+        .card-body {
+            padding: 15px;
+            background-color: #fff;
+            text-align: center;
+        }
+
+        .card-title {
+            font-size: 1em;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .btn-primary {
+            background-color: #f0ad4e;
+            border: none;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn-primary:hover {
+            background-color: #e67e22;
+        }
+
+        .btn-danger {
+            background-color: #e74c3c;
+            border: none;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+
+        p.text-center {
+            font-size: 1.2em;
+            color: #666;
         }
     </style>
 </head>
+
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark">
         <a class="navbar-brand" href="/">NomDuSite</a>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav mr-auto">
@@ -66,6 +125,7 @@
                     <div class="dropdown-menu dropdown-menu-right" aria-labelledby="profileDropdown">
                         <a class="dropdown-item" href="/profile">Mon Profil</a>
                         <a class="dropdown-item" href="/favorites">Mes Favoris</a>
+                        <a class="dropdown-item" href="/recommendations">Recommandations</a>
                         <a class="dropdown-item" href="{{ url_for('update_user_info') }}">Modifier le profil</a>
                         <a class="dropdown-item" href="{{ url_for('logout') }}">Déconnexion</a>
                     </div>
@@ -79,48 +139,46 @@
         </div>
     </nav>
 
+    <!-- Flash Messages -->
+    <div class="container mt-3">
+        {% with messages = get_flashed_messages(with_categories=True) %}
+            {% if messages %}
+                <div>
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Fermer">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+    </div>
+
     <div class="container my-4">
-        <h1>Mes Films Favoris</h1>
+        <h1 class="text-center">Mes Films Favoris</h1>
 
         {% if favorites %}
-            <div class="row">
+            <div class="movie-grid">
                 {% for favorite in favorites %}
-                    <div class="col">
-                        <div class="card">
-                            <img src="https://image.tmdb.org/t/p/w300{{ favorite.poster_path }}" class="card-img-top movie-poster" alt="Affiche de {{ favorite.title }}">
-                            <div class="card-body">
-                                <h5 class="card-title">{{ favorite.title }}</h5>
-                                <!-- Bouton pour voir les détails du film -->
-                                <a href="{{ url_for('movie_details', movie_id=favorite.movie_id) }}" class="btn btn-primary btn-sm btn-details">Voir les détails</a>
-                                <!-- Bouton pour retirer le film des favoris -->
-                                <form action="{{ url_for('remove_favorite', movie_id=favorite.movie_id) }}" method="POST">
-                                    <button type="submit" class="btn btn-danger btn-sm btn-remove">Retirer des favoris</button>
-                                </form>
-                            </div>
+                    <div class="card">
+                        <img src="https://image.tmdb.org/t/p/w300{{ favorite.poster_path }}" class="card-img-top movie-poster" alt="Affiche de {{ favorite.title }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ favorite.title }}</h5>
+                            <a href="{{ url_for('movie_details', movie_id=favorite.movie_id) }}" class="btn btn-primary">Voir les détails</a>
+                            <form action="{{ url_for('remove_favorite', movie_id=favorite.movie_id) }}" method="POST">
+                                <button type="submit" class="btn btn-danger">Retirer des favoris</button>
+                            </form>
                         </div>
                     </div>
                 {% endfor %}
             </div>
         {% else %}
-            <p>Vous n'avez pas encore ajouté de films à vos favoris.</p>
+            <p class="text-center">Vous n'avez pas encore ajouté de films à vos favoris.</p>
         {% endif %}
     </div>
-
-    <!-- Affichage des messages flash -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <div class="container mt-4">
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-    {% endwith %}
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>

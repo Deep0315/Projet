@@ -275,6 +275,49 @@ def favorites():
 
     return render_template('favorites.html', favorites=favorites, logged_in=current_user.is_authenticated)
 
+
+@app.route('/recommendations')
+@login_required
+def recommendations():
+    # Récupérer les films favoris et consultés
+    favorite_movies = FavoriteMovie.query.filter_by(user_id=current_user.id).all()
+    viewed_movies = MovieHistory.query.filter_by(user_id=current_user.id).all()
+
+    favorite_ids = {movie.movie_id for movie in favorite_movies}  # Films favoris
+    viewed_ids = {movie.movie_id for movie in viewed_movies}  # Films consultés
+    seen_ids = favorite_ids.union(viewed_ids)  # Combiner pour éviter les doublons
+
+    recommendations_details = []
+
+    # Fonction pour ajouter des films similaires
+    def add_similar_movies(movie_id, reason):
+        similar_url = f"https://api.themoviedb.org/3/movie/{movie_id}/similar?api_key={TMDB_API_KEY}&language=fr-FR"
+        response = requests.get(similar_url)
+        if response.status_code == 200:
+            similar_movies = response.json().get('results', [])
+            for movie in similar_movies:
+                if movie['id'] not in seen_ids:
+                    recommendations_details.append({
+                        'movie': movie,
+                        'reason': reason
+                    })
+                    seen_ids.add(movie['id'])
+
+    # Ajouter des films similaires aux favoris
+    for movie_id in favorite_ids:
+        add_similar_movies(movie_id, "Similaire à un film que vous avez ajouté en favoris.")
+
+    # Ajouter des films similaires aux films consultés (historique)
+    for movie_id in viewed_ids:
+        add_similar_movies(movie_id, "Similaire à un film que vous avez consulté récemment.")
+
+    # Limiter les recommandations à un certain nombre (par exemple, 10)
+    recommendations_details = recommendations_details[:10]
+
+    return render_template('recommendations.html', recommendations=recommendations_details)
+
+
+
 @app.route('/search')
 def search():
     return render_template('search_results.html', logged_in=current_user.is_authenticated, active_page='search')

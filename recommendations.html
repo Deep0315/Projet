@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Accueil</title>
+    <title>Recommandations</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Roboto', sans-serif;
@@ -43,45 +42,35 @@
             background-color: #495057;
         }
 
-        .trending-movies-container {
-            overflow: hidden;
-            white-space: nowrap;
-            position: relative;
-            margin-top: 30px;
+        .container {
+            max-width: 1200px;
         }
 
-        .trending-movies {
-            display: inline-block;
-            padding: 10px 0;
-            will-change: transform;
+        h1 {
+            color: #333;
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-top: 50px;
+            margin-bottom: 30px;
+            text-align: center;
         }
 
-        .trending-movie {
-            display: inline-block;
-            width: 200px;
-            margin-right: 20px;
-            vertical-align: top;
-            transition: transform 0.3s ease;
+        .row {
+            margin-bottom: 20px;
         }
 
-        .trending-movie:hover {
-            transform: scale(1.05);
-        }
-
-        .trending-movie img {
+        .img-fluid {
             border-radius: 12px;
-            height: 300px;
-            width: 100%;
-            object-fit: cover;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-body {
+            padding: 15px;
+            background-color: #fff;
         }
 
         .card-title {
             font-size: 1.1em;
             font-weight: 700;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
             color: #333;
         }
 
@@ -98,26 +87,17 @@
         .btn-primary:hover {
             background-color: #e67e22;
         }
-
-        .container {
-            max-width: 1200px;
-        }
-
-        h2 {
-            color: #333;
-            font-size: 2.5em;
-            font-weight: 700;
-            margin-bottom: 30px;
-            text-align: center;
-        }
     </style>
 </head>
 <body>
 
     <nav class="navbar navbar-expand-lg navbar-dark">
         <a class="navbar-brand" href="/">NomDuSite</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav mr-auto"> <!-- Liens à gauche -->
+            <ul class="navbar-nav mr-auto">
                 <li class="nav-item">
                     <a class="nav-link {% if active_page == 'home' %}font-weight-bold{% endif %}" href="/">Accueil</a>
                 </li>
@@ -125,23 +105,23 @@
                     <a class="nav-link {% if active_page == 'search' %}font-weight-bold{% endif %}" href="/search">Recherche</a>
                 </li>
             </ul>
-            <ul class="navbar-nav ml-auto"> <!-- Liens à droite -->
-                {% if logged_in %}
+            <ul class="navbar-nav ml-auto">
+                {% if current_user.is_authenticated %}
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {% if active_page == 'profile' %}font-weight-bold{% endif %}" href="#" id="profileDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle {% if active_page in ['profile', 'favorites', 'recommendations'] %}font-weight-bold{% endif %}" href="#" id="profileDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             Profil
                         </a>
                         <div class="dropdown-menu dropdown-menu-right" aria-labelledby="profileDropdown">
                             <a class="dropdown-item" href="/profile">Mon Profil</a>
                             <a class="dropdown-item" href="/favorites">Mes Favoris</a>
-                            <a class="nav-link" href="/recommendations">Recommandations</a>
+                            <a class="dropdown-item" href="/recommendations">Recommandations</a>
                             <a class="dropdown-item" href="{{ url_for('update_user_info') }}">Modifier le profil</a>
                             <a class="dropdown-item" href="{{ url_for('logout') }}">Déconnexion</a>
                         </div>
                     </li>
                 {% else %}
                     <li class="nav-item">
-                        <a class="nav-link {% if active_page == 'create' %}font-weight-bold{% endif %}" href="/connexion-account">Inscription/Connexion</a>
+                        <a class="nav-link {% if active_page == 'login' %}font-weight-bold{% endif %}" href="/connexion-account">Inscription/Connexion</a>
                     </li>
                 {% endif %}
             </ul>
@@ -149,44 +129,28 @@
     </nav>
 
     <div class="container my-4">
-        <h2 class="my-4">Films en Tendance</h2>
-        <div class="trending-movies-container" id="trendingMoviesContainer">
-            <div class="trending-movies" id="trendingMovies">
-                {% for movie in trending_movies %}
-                <div class="trending-movie">
-                    <a href="/movie/{{ movie['id'] }}">
-                        <img src="https://image.tmdb.org/t/p/w300{{ movie['poster_path'] }}" class="img-fluid" alt="Affiche du film {{ movie['title'] }}">
-                    </a>
-                    <div class="text-center mt-2">
-                        <h5 class="card-title">{{ movie['title'] }}</h5>
-                        <p class="card-text">Note : {{ movie['vote_average'] }}</p>
-                        <a href="/movie/{{ movie['id'] }}" class="btn btn-primary">Voir les détails</a>
-                    </div>
-                </div>
-                {% endfor %}
+        <h1 class="mb-4 text-center">Recommandations personnalisées</h1>
+
+        {% for recommendation in recommendations %}
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <img src="https://image.tmdb.org/t/p/w200{{ recommendation['movie']['poster_path'] }}"
+                     class="img-fluid rounded" alt="Affiche de {{ recommendation['movie']['title'] }}">
+            </div>
+            <div class="col-md-9">
+                <h5>{{ recommendation['movie']['title'] }}</h5>
+                <p><strong>Raison de la recommandation :</strong> {{ recommendation['reason'] }}</p>
+                <p>Note : <strong>{{ recommendation['movie']['vote_average'] }}</strong> / 10</p>
+                <p>{{ recommendation['movie']['overview'] }}</p>
+                <a href="/movie/{{ recommendation['movie']['id'] }}" class="btn btn-primary btn-sm">Voir les détails</a>
             </div>
         </div>
+        <hr>
+        {% endfor %}
     </div>
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
-    <script>
-        const trendingMovies = document.getElementById('trendingMovies');
-        let scrollAmount = 0;
-
-        function autoScroll() {
-            scrollAmount += 1;
-            trendingMovies.style.transform = `translateX(-${scrollAmount}px)`;
-
-            if (scrollAmount >= trendingMovies.scrollWidth / 2) {
-                scrollAmount = 0;
-                trendingMovies.style.transform = 'translateX(0)';
-            }
-        }
-
-        setInterval(autoScroll, 20);
-    </script>
 </body>
 </html>
